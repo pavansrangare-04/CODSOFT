@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tic Tac Toe AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: 100% 100%;
+}
+
+.game-box {
+    background: rgba(177, 174, 174, 0.47);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.96);
+    text-align: center;
+    width: 320px;
+}
+
+h2 {
+    margin-bottom: 10px;
+    color: hsl(215, 28%, 17%);
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.cell {
+    height: 80px;
+    background-color: #16c8a7;
+    font-size: 2.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+    user-select: none;
+}
+
+.cell:hover {
+    background-color: #0a6172;
+    color: #fff;
+}
+
+.status {
+    margin: 12px 0;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #1f2937;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #38e7d0;
+    color: #000;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #f136b6df;
+    color: #fff;
+}
+</style>
+</head>
+
+<body background="image/_bg_.jpg">
+
+<div class="game-box">
+    <h2>Tic Tac Toe AI</h2>
+    <p>Human (X) vs AI (O)</p>
+
+    <div class="board" id="board"></div>
+
+    <div class="status" id="statusText"></div>
+
+    <button onclick="resetGame()">Restart Game</button>
+</div>
+
+<script>
+const boardElement = document.getElementById("board");
+const statusText = document.getElementById("statusText");
+
+let board = ["","","","","","","","",""];
+let gameOver = false;
+
+const HUMAN = "X";
+const AI = "O";
+
+function createBoard(){
+    boardElement.innerHTML = "";
+    board.forEach((value, index) => {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.innerText = value;
+        cell.addEventListener("click", () => playerMove(index));
+        boardElement.appendChild(cell);
+    });
+}
+
+function playerMove(index){
+    if(board[index] !== "" || gameOver) return;
+
+    board[index] = HUMAN;
+    updateGame();
+
+    if(!gameOver){
+        setTimeout(aiMove, 300);
+    }
+}
+
+function aiMove(){
+    let bestScore = -Infinity;
+    let move;
+
+    for(let i = 0; i < 9; i++){
+        if(board[i] === ""){
+            board[i] = AI;
+            let score = minimax(board, 0, false);
+            board[i] = "";
+            if(score > bestScore){
+                bestScore = score;
+                move = i;
+            }
+        }
+    }
+
+    board[move] = AI;
+    updateGame();
+}
+
+function minimax(state, depth, isMaximizing){
+    let result = checkWinner();
+    if(result !== null){
+        if(result === AI) return 10 - depth;
+        if(result === HUMAN) return depth - 10;
+        return 0;
+    }
+
+    if(isMaximizing){
+        let best = -Infinity;
+        for(let i=0;i<9;i++){
+            if(state[i] === ""){
+                state[i] = AI;
+                best = Math.max(best, minimax(state, depth+1, false));
+                state[i] = "";
+            }
+        }
+        return best;
+    }else{
+        let best = Infinity;
+        for(let i=0;i<9;i++){
+            if(state[i] === ""){
+                state[i] = HUMAN;
+                best = Math.min(best, minimax(state, depth+1, true));
+                state[i] = "";
+            }
+        }
+        return best;
+    }
+}
+
+function checkWinner(){
+    const wins = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+    ];
+
+    for(let pattern of wins){
+        let [a,b,c] = pattern;
+        if(board[a] && board[a] === board[b] && board[a] === board[c]){
+            return board[a];
+        }
+    }
+
+    if(!board.includes("")) return "draw";
+    return null;
+}
+
+function updateGame(){
+    createBoard();
+    let winner = checkWinner();
+
+    if(winner){
+        gameOver = true;
+        if(winner === "draw"){
+            statusText.innerText = "It's a Draw!";
+        }else{
+            statusText.innerText = winner + " Wins!";
+        }
+    }
+}
+
+function resetGame(){
+    board = ["","","","","","","","",""];
+    gameOver = false;
+    statusText.innerText = "";
+    createBoard();
+}
+
+createBoard();
+</script>
+
+</body>
+</html>
